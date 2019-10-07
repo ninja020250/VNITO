@@ -1,41 +1,39 @@
 import React from "react";
-import "./App.css";
+import "./styles/index.css";
 import { data, VN_HEADER, EN_HEADER, EN_TABS, VN_TABS } from "./soulutionsData";
-// function App() {
-//   return (
-//     <div className="App">
 
-//     </div>
-//   );
-// }
+const mailIcon = require("./imgs/mail.png");
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     var ENContents = [];
-    // data.map(content => {
-    //   if (content.VN !== "1") {
-    //     ENContents.push(content);
-    //   }
-    // });
+
     this.state = {
       contents: data,
-      language: "en"
+      language: "en",
+      active: "ALL"
     };
-    debugger;
   }
   componentDidMount() {}
 
-  switchLanguage = () => {
+  switchLanguage = language => {
     var currentLanguage = this.state.language;
-    if (currentLanguage === "en") {
-      this.setState({
-        ...this.state,
-        language: "vn"
-      });
+    var curretnTab = this.state.active;
+    var newTab = "";
+    if (language === "vn") {
+      var indexof = EN_TABS.indexOf(curretnTab);
+      newTab = VN_TABS[indexof];
     } else {
+      var indexof = VN_TABS.indexOf(curretnTab);
+      newTab = EN_TABS[indexof];
+    }
+  
+    if (language !== currentLanguage) {
+      this.filterByTab(newTab);
       this.setState({
         ...this.state,
-        language: "en"
+        language: language,
+        active: newTab
       });
     }
   };
@@ -51,6 +49,7 @@ export default class App extends React.Component {
     });
     return result;
   };
+  x;
 
   getTabs = btnOnClick => {
     var { language } = this.state;
@@ -62,6 +61,9 @@ export default class App extends React.Component {
     tabs.map((tab, i) => {
       result.push(
         <button
+          className={`btn-tab ${
+            tab === this.state.active ? "btn-tab-active" : ""
+          }`}
           onClick={() => {
             btnOnClick(tab);
           }}
@@ -89,49 +91,66 @@ export default class App extends React.Component {
             <td>{e.targetclientsEN}</td>
 
             <td>
-              <a href={e.URLcompany}>{e.companyEN}</a>
+              <p>
+                {" "}
+                <a href={e.URLcompany}>{e.companyEN}</a>
+              </p>
 
-              <br />
-              {e.fullName}
-              <br />
-              {e.Position}
-              <br />
-              {e.Email}
+              <p> {e.fullName}</p>
+              <p> {e.Position} </p>
+
+              <p>
+                <img style={{ width: "15px", height: "15px" }} src={mailIcon} />
+                <span> {e.Email}</span>
+              </p>
             </td>
           </tr>
         );
       });
     } else {
       contents.map((e, index) => {
-        result.push(
-          <tr key={index}>
-            <td>{index + 1}</td>
-            <td>
-              <a href={e.URLSolutions}>{e.solutionVN}</a>
-            </td>
-            <td>{e.descriptionVN}</td>
-            <td>{e.targetclientsVN}</td>
+        if (e.VN === "1") {
+          result.push(
+            <tr key={index}>
+              <td>{index + 1}</td>
+              <td>
+                <a href={e.URLSolutions}>{e.solutionVN}</a>
+              </td>
+              <td>{e.descriptionVN}</td>
+              <td>{e.targetclientsVN}</td>
 
-            <td>
-              <a href={e.URLcompany}>{e.companyVN}</a>
-              <br />
-              {e.fullName}
-              <br />
-              {e.Position}
-              <br />
-              {e.Email}
-            </td>
-          </tr>
-        );
+              <td>
+                <p>
+                  {" "}
+                  <a href={e.URLcompany}>{e.companyVN}</a>
+                </p>
+                <p> {e.fullName}</p>
+                <p> {e.Position}</p>
+
+                <p>
+                  <img
+                    style={{ width: "15px", height: "15px" }}
+                    src={mailIcon}
+                  />
+                  <span> {e.Email}</span>
+                </p>
+              </td>
+            </tr>
+          );
+        }
       });
     }
+    var count =  result.length;
+    console.log("Count: "+ count);
     return result;
+    
   };
 
   filterByTab = value => {
     if (value === "ALL" || value === "TẤT CẢ") {
       this.setState({
         ...this.state,
+        active: value,
         contents: Object.assign([], data)
       });
     } else {
@@ -150,12 +169,14 @@ export default class App extends React.Component {
           language === "vn"
         ) {
           result.push(solution);
+          console.log("RESULT:", result);
         } else {
           otherResult.push(solution);
         }
       });
       this.setState({
         ...this.state,
+        active: value,
         contents:
           value === "other" || value === "khác"
             ? Object.assign([], otherResult)
@@ -167,21 +188,43 @@ export default class App extends React.Component {
   render() {
     const { contents, language } = this.state;
     return (
-      <div
-        className="vnito-container"
-        style={{ maxWidth: "1140px", margin: "auto" }}
-      >
-        <div className="btn-group">{this.getTabs(this.filterByTab)}</div>
-        <div className="btn-group">
-          <button className="btn btn-language" onClick={this.switchLanguage}>
-            English
-          </button>
-          <button className="btn btn-language" onClick={this.switchLanguage}>
-            Việt Nam
-          </button>
+      <div className="vnito-container">
+        <div className="toolbar">
+          <div
+            className="btn-group-left"
+            style={{ paddingLeft: "15px", paddingRight: "15px" }}
+          >
+            {this.getTabs(this.filterByTab)}
+          </div>
+          <div className="btn-group-right" style={{ display: "flex" }}>
+            <button
+              className={`btn-language ${
+                language === "en" ? "btn-language-active" : ""
+              }`}
+              onClick={() => {
+                this.switchLanguage("en");
+              }}
+            >
+              English
+            </button>
+            <button
+              className={`btn-language ${
+                language === "vn" ? "btn-language-active" : ""
+              }`}
+              onClick={() => {
+                this.switchLanguage("vn");
+              }}
+            >
+              Vietnamese
+            </button>
+          </div>
         </div>
-        <div style={{ overflowX: "auto" }}>
-          <table border="1" className="responstable" style={{width: "100%"}}>
+
+        <div
+          style={{ minWidth: "900px", maxHeight: "100vh", overflowY: "auto" }}
+        >
+       
+          <table className="responstable">
             <thead>
               <tr>{this.getHeader()}</tr>
             </thead>
